@@ -312,27 +312,35 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <SidebarGroupLabel>Minhas Salas</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {rooms.map((room) => (
-                    <SidebarMenuItem key={room.id}>
-                      <SidebarMenuButton
-                        onClick={() => onRoomSelect(room)}
-                        isActive={currentRoom?.id === room.id}
-                        className="w-full justify-between"
-                      >
-                        <div className="flex items-center space-x-2">
-                          {room.isPrivate ? (
-                            <Lock className="h-4 w-4" />
-                          ) : (
-                            <Hash className="h-4 w-4" />
-                          )}
-                          <span className="text-sm">{room.name}</span>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {room.members.length}
-                        </Badge>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {rooms.length > 0 ? (
+                    rooms.map((room) => (
+                      <SidebarMenuItem key={room.id}>
+                        <SidebarMenuButton
+                          onClick={() => onRoomSelect(room)}
+                          isActive={currentRoom?.id === room.id}
+                          className="w-full justify-between"
+                        >
+                          <div className="flex items-center space-x-2">
+                            {room.isPrivate ? (
+                              <Lock className="h-4 w-4" />
+                            ) : (
+                              <Hash className="h-4 w-4" />
+                            )}
+                            <span className="text-sm">{room.name}</span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {room.members.length}
+                          </Badge>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-4">
+                      <p className="text-sm text-gray-500">
+                        Nenhuma sala encontrada. Crie uma nova sala ou procure por salas públicas.
+                      </p>
+                    </div>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

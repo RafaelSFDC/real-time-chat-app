@@ -188,44 +188,7 @@ export const useChat = (currentRoom?: Room | null) => {
     }
   }, [user]);
 
-  const addReaction = useCallback(async (messageId: string, emoji: string): Promise<void> => {
-    if (!user) return;
 
-    try {
-      const messageRef = doc(db, 'messages', messageId);
-      await updateDoc(messageRef, {
-        [`reactions.${emoji}.users`]: arrayUnion(user.uid),
-        [`reactions.${emoji}.count`]: increment(1),
-        [`reactions.${emoji}.emoji`]: emoji,
-      });
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        error: 'Erro ao adicionar reação',
-      }));
-      console.error('Error adding reaction:', error);
-      throw error;
-    }
-  }, [user]);
-
-  const removeReaction = useCallback(async (messageId: string, emoji: string): Promise<void> => {
-    if (!user) return;
-
-    try {
-      const messageRef = doc(db, 'messages', messageId);
-      await updateDoc(messageRef, {
-        [`reactions.${emoji}.users`]: arrayRemove(user.uid),
-        [`reactions.${emoji}.count`]: increment(-1),
-      });
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        error: 'Erro ao remover reação',
-      }));
-      console.error('Error removing reaction:', error);
-      throw error;
-    }
-  }, [user]);
 
   const clearError = useCallback((): void => {
     setState(prev => ({ ...prev, error: null }));
@@ -236,8 +199,6 @@ export const useChat = (currentRoom?: Room | null) => {
     sendMessage,
     editMessage,
     deleteMessage,
-    addReaction,
-    removeReaction,
     setTyping,
     clearError,
   };

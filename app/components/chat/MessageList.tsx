@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Edit2, Trash2, Smile, Copy } from 'lucide-react';
+import { Edit2, Trash2, Copy } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
-import { Badge } from '~/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -16,7 +14,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '~/components/ui/context-menu';
-import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
 import { useAuth } from '~/contexts/AuthContext';
 import { useUsers } from '~/hooks/useUsers';
 import { useChat } from '~/hooks/useChat';
@@ -33,11 +30,10 @@ interface MessageListProps {
 export const MessageList: React.FC<MessageListProps> = ({ messages, loading, currentRoom }) => {
   const { user } = useAuth();
   const { getUserById } = useUsers();
-  const { editMessage, deleteMessage, addReaction, removeReaction } = useChat(currentRoom);
+  const { editMessage, deleteMessage } = useChat(currentRoom);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
-  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -149,24 +145,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, loading, cur
     }
   };
 
-  // Handle emoji reaction
-  const handleEmojiReaction = async (messageId: string, emojiData: EmojiClickData) => {
-    const emoji = emojiData.emoji;
-    setShowEmojiPicker(null);
 
-    try {
-      const message = messages.find(m => m.id === messageId);
-      const hasReacted = message?.reactions?.[emoji]?.users?.includes(user?.uid || '');
-
-      if (hasReacted) {
-        await removeReaction(messageId, emoji);
-      } else {
-        await addReaction(messageId, emoji);
-      }
-    } catch (error) {
-      console.error('Error handling reaction:', error);
-    }
-  };
 
   // Copy message text
   const copyMessageText = (text: string) => {
@@ -296,22 +275,11 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, loading, cur
                 <ContextMenuTrigger asChild>
                   <div
                     className={cn(
-                      'rounded-lg px-3 py-2 text-sm break-words whitespace-pre-wrap cursor-pointer hover:opacity-90 transition-opacity',
+                      'rounded-lg px-3 py-2 text-sm break-words whitespace-pre-wrap',
                       isOwnMessage
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                     )}
-                    onClick={(e) => {
-                      // Trigger context menu on normal click too
-                      e.preventDefault();
-                      const contextMenuEvent = new MouseEvent('contextmenu', {
-                        bubbles: true,
-                        cancelable: true,
-                        clientX: e.clientX,
-                        clientY: e.clientY,
-                      });
-                      e.currentTarget.dispatchEvent(contextMenuEvent);
-                    }}
                   >
                     {isEditing ? (
                       <div className="space-y-2">
@@ -364,11 +332,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, loading, cur
                     Copiar texto
                   </ContextMenuItem>
 
-                  <ContextMenuItem onClick={() => setShowEmojiPicker(message.id)}>
-                    <Smile className="h-4 w-4 mr-2" />
-                    Reagir
-                  </ContextMenuItem>
-
                   {isOwnMessage && (
                     <>
                       <ContextMenuSeparator />
@@ -388,50 +351,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, loading, cur
                 </ContextMenuContent>
               </ContextMenu>
 
-              {/* Reactions */}
-              {message.reactions && Object.keys(message.reactions).length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {Object.entries(message.reactions).map(([emoji, reaction]) => {
-                    if (reaction.count <= 0) return null;
 
-                    const hasReacted = reaction.users?.includes(user?.uid || '');
-
-                    return (
-                      <Button
-                        key={emoji}
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          'h-6 px-2 text-xs',
-                          hasReacted && 'bg-blue-100 border-blue-300 dark:bg-blue-900 dark:border-blue-700'
-                        )}
-                        onClick={() => {
-                          if (hasReacted) {
-                            removeReaction(message.id, emoji);
-                          } else {
-                            addReaction(message.id, emoji);
-                          }
-                        }}
-                      >
-                        {emoji} {reaction.count}
-                      </Button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Emoji Picker for Reactions */}
-              {showEmojiPicker === message.id && (
-                <Popover open={true} onOpenChange={() => setShowEmojiPicker(null)}>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <EmojiPicker
-                      onEmojiClick={(emojiData) => handleEmojiReaction(message.id, emojiData)}
-                      width={300}
-                      height={350}
-                    />
-                  </PopoverContent>
-                </Popover>
-              )}
             </div>
           </div>
         );

@@ -46,21 +46,7 @@ export const UserContextMenu: React.FC<UserContextMenuProps> = ({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          className="cursor-pointer"
-          onClick={(e) => {
-            // Trigger context menu on normal click too
-            e.preventDefault();
-            e.stopPropagation();
-            const contextMenuEvent = new MouseEvent('contextmenu', {
-              bubbles: true,
-              cancelable: true,
-              clientX: e.clientX,
-              clientY: e.clientY,
-            });
-            e.currentTarget.dispatchEvent(contextMenuEvent);
-          }}
-        >
+        <div>
           {children}
         </div>
       </ContextMenuTrigger>

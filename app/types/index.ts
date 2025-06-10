@@ -8,11 +8,7 @@ export interface User {
   createdAt: Date;
 }
 
-export interface MessageReaction {
-  emoji: string;
-  users: string[]; // Array de userIds que reagiram
-  count: number;
-}
+
 
 export interface Message {
   id: string;
@@ -25,7 +21,6 @@ export interface Message {
   updatedAt?: Date;
   roomId?: string;
   mentions?: string[]; // Array de userIds mencionados
-  reactions?: { [emoji: string]: MessageReaction };
   isEdited?: boolean;
 }
 

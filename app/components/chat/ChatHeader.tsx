@@ -1,10 +1,18 @@
-import React from 'react';
-import { LogOut, MessageCircle, Hash, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { LogOut, MessageCircle, Hash, Users, Settings } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Badge } from '~/components/ui/badge';
 import { SidebarTrigger } from '~/components/ui/sidebar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu';
 import { useAuth } from '~/contexts/AuthContext';
+import { UserProfile } from '~/components/user/UserProfile';
 import type { Room } from '~/types';
 
 interface ChatHeaderProps {
@@ -13,6 +21,7 @@ interface ChatHeaderProps {
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ currentRoom }) => {
   const { user, logout } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -65,29 +74,36 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ currentRoom }) => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.photoURL || undefined} />
-              <AvatarFallback className="bg-blue-600 text-white text-xs">
-                {user?.displayName ? getInitials(user.displayName) : 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">
-              {user?.displayName || user?.email}
-            </span>
-          </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="ml-2 hidden sm:block">Sair</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.photoURL || undefined} />
+                  <AvatarFallback className="bg-blue-600 text-white text-xs">
+                    {user?.displayName ? getInitials(user.displayName) : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">
+                  {user?.displayName || user?.email}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowProfile(true)}>
+                <Settings className="h-4 w-4 mr-2" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
+      <UserProfile open={showProfile} onOpenChange={setShowProfile} />
     </header>
   );
 };
