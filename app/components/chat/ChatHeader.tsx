@@ -1,10 +1,16 @@
 import React from 'react';
-import { LogOut, MessageCircle } from 'lucide-react';
+import { LogOut, MessageCircle, Hash, Users } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
+import { Badge } from '~/components/ui/badge';
 import { useAuth } from '~/contexts/AuthContext';
+import type { Room } from '~/types';
 
-export const ChatHeader: React.FC = () => {
+interface ChatHeaderProps {
+  currentRoom?: Room | null;
+}
+
+export const ChatHeader: React.FC<ChatHeaderProps> = ({ currentRoom }) => {
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -28,10 +34,32 @@ export const ChatHeader: React.FC = () => {
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <MessageCircle className="h-6 w-6 text-blue-600" />
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Chat App
-          </h1>
+          {currentRoom ? (
+            <>
+              <Hash className="h-6 w-6 text-blue-600" />
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {currentRoom.name}
+                </h1>
+                {currentRoom.description && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {currentRoom.description}
+                  </p>
+                )}
+              </div>
+              <Badge variant="secondary" className="ml-2">
+                <Users className="h-3 w-3 mr-1" />
+                {currentRoom.members.length}
+              </Badge>
+            </>
+          ) : (
+            <>
+              <MessageCircle className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Chat Global
+              </h1>
+            </>
+          )}
         </div>
 
         <div className="flex items-center space-x-3">

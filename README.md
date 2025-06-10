@@ -17,6 +17,11 @@ Um aplicativo de chat moderno e completo construído com React Router, Firebase,
 - ✅ Diferenciação visual entre mensagens próprias e de outros usuários
 - ✅ Timestamps formatados (hoje, ontem, data completa)
 - ✅ Scroll automático para novas mensagens
+- ✅ **Suporte a emojis** com emoji picker integrado
+- ✅ **Preservação de quebras de linha** (Shift+Enter)
+- ✅ **Sistema de menções** (@usuário) com autocomplete
+- ✅ **Sidebar com busca** de usuários e salas
+- ✅ **Sistema de salas/rooms** para organizar conversas
 
 ### 🎯 **Funcionalidades Avançadas**
 - ✅ Indicador "usuário está digitando..."
@@ -158,6 +163,48 @@ Personalize as cores editando as variáveis CSS no arquivo `app/app.css`.
 
 ### Componentes
 Todos os componentes UI são baseados no Shadcn/ui e podem ser facilmente customizados.
+
+## 🆕 Novas Funcionalidades Implementadas
+
+### 😀 **Suporte a Emojis**
+- Emoji picker integrado com mais de 1000 emojis
+- Botão dedicado para abrir o seletor de emojis
+- Inserção de emojis na posição do cursor
+- Interface responsiva e moderna
+
+### 📝 **Quebras de Linha**
+- Suporte completo a quebras de linha nas mensagens
+- `Shift + Enter` para nova linha
+- `Enter` para enviar mensagem
+- Renderização preserva formatação original
+
+### 👥 **Sistema de Menções**
+- Digite `@` para mencionar usuários
+- Autocomplete inteligente com busca por nome e email
+- Navegação com setas do teclado
+- Destaque visual das menções nas mensagens
+- Armazenamento das menções no banco de dados
+
+### 🏠 **Sistema de Salas**
+- Criação de salas públicas e privadas
+- Chat global para conversas gerais
+- Navegação entre salas na sidebar
+- Contador de membros por sala
+- Busca de salas públicas
+
+### 🔍 **Sidebar com Busca**
+- Busca em tempo real de usuários e salas
+- Interface organizada com seções
+- Criação rápida de novas salas
+- Lista de salas do usuário
+- Acesso rápido ao chat global
+
+### 🎯 **Melhorias na Interface**
+- Layout com sidebar responsiva
+- Header dinâmico mostrando sala atual
+- Botões de ação para emojis e menções
+- Indicadores visuais melhorados
+- Experiência de usuário aprimorada
 
 ## 🚀 Deploy
 

@@ -4,6 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Skeleton } from '~/components/ui/skeleton';
 import { useAuth } from '~/contexts/AuthContext';
+import { useUsers } from '~/hooks/useUsers';
 import type { Message } from '~/types';
 import { cn } from '~/lib/utils';
 
@@ -14,6 +15,7 @@ interface MessageListProps {
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, loading }) => {
   const { user } = useAuth();
+  const { getUserById } = useUsers();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -41,6 +43,65 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, loading }) =
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Render message text with line breaks and mentions
+  const renderMessageText = (text: string, mentions: string[] = []) => {
+    // First, handle line breaks
+    const lines = text.split('\n');
+
+    return lines.map((line, lineIndex) => (
+      <React.Fragment key={lineIndex}>
+        {lineIndex > 0 && <br />}
+        {renderLineWithMentions(line, mentions)}
+      </React.Fragment>
+    ));
+  };
+
+  // Render a line with mentions highlighted
+  const renderLineWithMentions = (line: string, mentions: string[] = []) => {
+    if (mentions.length === 0) {
+      return line;
+    }
+
+    // Create a regex to find @mentions
+    const mentionRegex = /@(\w+(?:\s+\w+)*)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = mentionRegex.exec(line)) !== null) {
+      // Add text before the mention
+      if (match.index > lastIndex) {
+        parts.push(line.substring(lastIndex, match.index));
+      }
+
+      // Find the mentioned user
+      const mentionedUserName = match[1];
+      const mentionedUser = getUserById(mentions.find(uid => {
+        const user = getUserById(uid);
+        return user?.displayName === mentionedUserName;
+      }) || '');
+
+      // Add the mention with styling
+      parts.push(
+        <span
+          key={match.index}
+          className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1 rounded font-medium"
+        >
+          @{mentionedUserName}
+        </span>
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < line.length) {
+      parts.push(line.substring(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : line;
   };
 
   if (loading) {
@@ -127,12 +188,12 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, loading }) =
               </div>
 
               <div className={cn(
-                'rounded-lg px-3 py-2 text-sm break-words',
+                'rounded-lg px-3 py-2 text-sm break-words whitespace-pre-wrap',
                 isOwnMessage
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
               )}>
-                {message.text}
+                {renderMessageText(message.text, message.mentions)}
               </div>
             </div>
           </div>

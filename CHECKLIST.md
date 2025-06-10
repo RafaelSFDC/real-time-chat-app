@@ -18,6 +18,11 @@
 - ✅ Timestamps formatados (hoje, ontem, data completa)
 - ✅ Scroll automático para novas mensagens
 - ✅ Hook personalizado useChat
+- ✅ **Suporte a emojis** com emoji picker integrado
+- ✅ **Preservação de quebras de linha** (Shift+Enter)
+- ✅ **Sistema de menções** (@usuário) com autocomplete
+- ✅ **Sistema de salas/rooms** para organizar conversas
+- ✅ **Sidebar com busca** de usuários e salas
 
 ### 🎯 **Funcionalidades Avançadas**
 - ✅ Indicador "usuário está digitando..."
@@ -67,12 +72,13 @@
 
 ### 📱 **Funcionalidades Avançadas (Opcionais)**
 - ❌ **Upload de imagens** - Não implementado
-- ❌ **Emojis/Reactions** - Não implementado
-- ❌ **Salas de chat múltiplas** - Não implementado
+- ✅ **Emojis/Reactions** - ✅ IMPLEMENTADO com emoji picker
+- ✅ **Salas de chat múltiplas** - ✅ IMPLEMENTADO com sistema de rooms
 - ❌ **Mensagens privadas** - Não implementado
+- ✅ **Menções de usuários** - ✅ IMPLEMENTADO com autocomplete
 - ❌ **Status online/offline** - Não implementado
-- ❌ **Histórico de mensagens** - Paginação não implementada
-- ❌ **Busca de mensagens** - Não implementado
+- ✅ **Histórico de mensagens** - ✅ IMPLEMENTADO com quebras de linha
+- ✅ **Busca de usuários e salas** - ✅ IMPLEMENTADO na sidebar
 - ❌ **Notificações push** - Não implementado
 
 ### 🔒 **Segurança e Performance**
@@ -110,9 +116,13 @@
 
 ### 5. **Funcionalidades Extras** (Baixo)
 - [ ] Implementar upload de imagens
-- [ ] Adicionar emojis/reactions
-- [ ] Implementar salas múltiplas
+- [x] ~~Adicionar emojis/reactions~~ ✅ CONCLUÍDO
+- [x] ~~Implementar salas múltiplas~~ ✅ CONCLUÍDO
+- [x] ~~Adicionar sistema de menções~~ ✅ CONCLUÍDO
+- [x] ~~Implementar busca de usuários~~ ✅ CONCLUÍDO
 - [ ] Adicionar notificações push
+- [ ] Implementar mensagens privadas
+- [ ] Adicionar status online/offline
 
 ## 📊 **Status Geral do Projeto**
 

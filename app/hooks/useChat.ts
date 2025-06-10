@@ -14,15 +14,16 @@ import {
 } from 'firebase/firestore';
 import { db } from '~/lib/firebase';
 import { useAuth } from '~/contexts/AuthContext';
-import type { Message, ChatState, TypingIndicator } from '~/types';
+import type { Message, ChatState, TypingIndicator, Room } from '~/types';
 
-export const useChat = () => {
+export const useChat = (currentRoom?: Room | null) => {
   const { user } = useAuth();
   const [state, setState] = useState<ChatState>({
     messages: [],
     loading: true,
     error: null,
     isTyping: false,
+    currentRoom: currentRoom || undefined,
   });
 
   // Listen to messages in real-time
@@ -30,7 +31,22 @@ export const useChat = () => {
     if (!user) return;
 
     const messagesRef = collection(db, 'messages');
-    const q = query(messagesRef, orderBy('createdAt', 'asc'));
+    let q;
+
+    if (currentRoom) {
+      // Filter messages by room
+      q = query(
+        messagesRef,
+        where('roomId', '==', currentRoom.id),
+        orderBy('createdAt', 'asc')
+      );
+    } else {
+      // Global chat (messages without roomId or with roomId as null)
+      q = query(
+        messagesRef,
+        orderBy('createdAt', 'asc')
+      );
+    }
 
     const unsubscribe = onSnapshot(
       q,
@@ -38,7 +54,7 @@ export const useChat = () => {
         const messages: Message[] = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
-          messages.push({
+          const message = {
             id: doc.id,
             text: data.text,
             userId: data.userId,
@@ -46,7 +62,22 @@ export const useChat = () => {
             userName: data.userName,
             timestamp: data.timestamp?.toDate() || new Date(),
             createdAt: data.createdAt?.toDate() || new Date(),
-          });
+            roomId: data.roomId || null,
+            mentions: data.mentions || [],
+          };
+
+          // Filter messages based on current room
+          if (currentRoom) {
+            // Only show messages for this room
+            if (message.roomId === currentRoom.id) {
+              messages.push(message);
+            }
+          } else {
+            // Global chat: show messages without roomId
+            if (!message.roomId) {
+              messages.push(message);
+            }
+          }
         });
 
         setState(prev => ({
@@ -67,9 +98,9 @@ export const useChat = () => {
     );
 
     return unsubscribe;
-  }, [user]);
+  }, [user, currentRoom]);
 
-  const sendMessage = useCallback(async (text: string): Promise<void> => {
+  const sendMessage = useCallback(async (text: string, mentions: string[] = []): Promise<void> => {
     if (!user || !text.trim()) return;
 
     try {
@@ -81,6 +112,8 @@ export const useChat = () => {
         userName: user.displayName || user.email,
         timestamp: serverTimestamp(),
         createdAt: serverTimestamp(),
+        roomId: currentRoom?.id || null,
+        mentions: mentions.length > 0 ? mentions : [],
       });
     } catch (error) {
       setState(prev => ({
@@ -90,7 +123,7 @@ export const useChat = () => {
       console.error('Error sending message:', error);
       throw error;
     }
-  }, [user]);
+  }, [user, currentRoom]);
 
   const setTyping = useCallback(async (isTyping: boolean): Promise<void> => {
     if (!user) return;

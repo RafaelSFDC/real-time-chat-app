@@ -16,6 +16,8 @@ export interface Message {
   userName: string;
   timestamp: Date;
   createdAt: Date;
+  roomId?: string;
+  mentions?: string[]; // Array de userIds mencionados
 }
 
 export interface AuthState {
@@ -36,11 +38,22 @@ export interface RegisterFormData {
   displayName: string;
 }
 
+export interface Room {
+  id: string;
+  name: string;
+  description?: string;
+  createdBy: string;
+  createdAt: Date;
+  members: string[]; // Array de userIds
+  isPrivate: boolean;
+}
+
 export interface ChatState {
   messages: Message[];
   loading: boolean;
   error: string | null;
   isTyping: boolean;
+  currentRoom?: Room;
 }
 
 export interface TypingIndicator {
