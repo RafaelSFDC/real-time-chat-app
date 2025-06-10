@@ -1,17 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router';
 import { useAuth } from '~/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
-import type { Route } from "./+types/home";
 
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Chat App - Aplicativo de Chat em Tempo Real" },
-    { name: "description", content: "Aplicativo de chat em tempo real com Firebase" },
-  ];
+interface ProtectedRouteProps {
+  children: React.ReactNode;
 }
 
-export default function Home() {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -25,10 +21,9 @@ export default function Home() {
     );
   }
 
-  // Redirect based on authentication status
-  if (user) {
-    return <Navigate to="/chat" replace />;
-  } else {
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
-}
+
+  return <>{children}</>;
+};
