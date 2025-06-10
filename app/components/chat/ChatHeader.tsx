@@ -3,6 +3,7 @@ import { LogOut, MessageCircle, Hash, Users } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Badge } from '~/components/ui/badge';
+import { SidebarTrigger } from '~/components/ui/sidebar';
 import { useAuth } from '~/contexts/AuthContext';
 import type { Room } from '~/types';
 
@@ -34,6 +35,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ currentRoom }) => {
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
+          <SidebarTrigger />
           {currentRoom ? (
             <>
               <Hash className="h-6 w-6 text-blue-600" />

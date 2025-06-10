@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
-import { Search, Plus, Hash, Users, MessageCircle } from 'lucide-react';
+import { Search, Plus, Hash, Users, MessageCircle, Lock } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
-import { ScrollArea } from '~/components/ui/scroll-area';
-import { Separator } from '~/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Badge } from '~/components/ui/badge';
+import { Switch } from '~/components/ui/switch';
+import { Label } from '~/components/ui/label';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from '~/components/ui/sidebar';
 import { useRooms } from '~/hooks/useRooms';
 import { useUsers } from '~/hooks/useUsers';
 import { useAuth } from '~/contexts/AuthContext';
-import { cn } from '~/lib/utils';
 import type { Room, User } from '~/types';
 
 interface ChatSidebarProps {
@@ -25,7 +35,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 }) => {
   const { user: currentUser } = useAuth();
   const { rooms, createRoom, joinRoom, searchRooms } = useRooms();
-  const { users, searchUsers } = useUsers();
+  const { searchUsers } = useUsers();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<{
     rooms: Room[];
@@ -34,10 +44,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
+  const [isPrivateRoom, setIsPrivateRoom] = useState(false);
+  const [roomPassword, setRoomPassword] = useState('');
 
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
-    
+
     if (!term.trim()) {
       setSearchResults({ rooms: [], users: [] });
       setIsSearching(false);
@@ -64,10 +76,16 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   const handleCreateRoom = async () => {
     if (!newRoomName.trim()) return;
+    if (isPrivateRoom && !roomPassword.trim()) {
+      alert('Senha é obrigatória para salas privadas');
+      return;
+    }
 
     try {
-      const roomId = await createRoom(newRoomName);
+      await createRoom(newRoomName, '', isPrivateRoom, isPrivateRoom ? roomPassword : undefined);
       setNewRoomName('');
+      setIsPrivateRoom(false);
+      setRoomPassword('');
       setShowCreateRoom(false);
       // The room will appear in the list automatically due to real-time updates
     } catch (error) {
@@ -98,13 +116,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    <Sidebar>
+      <SidebarHeader className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Chat
-          </h2>
+          <h2 className="text-lg font-semibold">Chat</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -127,13 +142,53 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
         {/* Create Room Form */}
         {showCreateRoom && (
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-3">
             <Input
               placeholder="Nome da sala..."
               value={newRoomName}
               onChange={(e) => setNewRoomName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleCreateRoom()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleCreateRoom();
+                } else if (e.key === 'Escape') {
+                  setShowCreateRoom(false);
+                  setNewRoomName('');
+                  setIsPrivateRoom(false);
+                  setRoomPassword('');
+                }
+              }}
             />
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="private-room"
+                checked={isPrivateRoom}
+                onCheckedChange={setIsPrivateRoom}
+              />
+              <Label htmlFor="private-room" className="text-sm">
+                Sala privada
+              </Label>
+            </div>
+
+            {isPrivateRoom && (
+              <Input
+                type="password"
+                placeholder="Senha da sala..."
+                value={roomPassword}
+                onChange={(e) => setRoomPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateRoom();
+                  } else if (e.key === 'Escape') {
+                    setShowCreateRoom(false);
+                    setNewRoomName('');
+                    setIsPrivateRoom(false);
+                    setRoomPassword('');
+                  }
+                }}
+              />
+            )}
+
             <div className="flex space-x-2">
               <Button size="sm" onClick={handleCreateRoom}>
                 Criar
@@ -144,6 +199,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 onClick={() => {
                   setShowCreateRoom(false);
                   setNewRoomName('');
+                  setIsPrivateRoom(false);
+                  setRoomPassword('');
                 }}
               >
                 Cancelar
@@ -151,120 +208,137 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             </div>
           </div>
         )}
-      </div>
+      </SidebarHeader>
 
-      <ScrollArea className="flex-1">
+      <SidebarContent>
         {/* Search Results */}
         {searchTerm && (
-          <div className="p-4">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              Resultados da busca
-            </h3>
-            
-            {/* Room Results */}
-            {searchResults.rooms.length > 0 && (
-              <div className="mb-4">
-                <h4 className="text-xs font-medium text-gray-400 mb-2 flex items-center">
-                  <Hash className="h-3 w-3 mr-1" />
-                  Salas
-                </h4>
-                {searchResults.rooms.map((room) => (
-                  <div
-                    key={room.id}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                    onClick={() => isUserInRoom(room) ? onRoomSelect(room) : handleJoinRoom(room)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Hash className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm">{room.name}</span>
+          <SidebarGroup>
+            <SidebarGroupLabel>Resultados da busca</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {/* Room Results */}
+                {searchResults.rooms.length > 0 && (
+                  <>
+                    <div className="text-xs font-medium text-gray-400 mb-2 flex items-center px-2">
+                      <Hash className="h-3 w-3 mr-1" />
+                      Salas
                     </div>
-                    {!isUserInRoom(room) && (
-                      <Badge variant="outline" className="text-xs">
-                        Entrar
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                    {searchResults.rooms.map((room) => (
+                      <SidebarMenuItem key={room.id}>
+                        <SidebarMenuButton
+                          onClick={() => isUserInRoom(room) ? onRoomSelect(room) : handleJoinRoom(room)}
+                          className="w-full justify-between"
+                        >
+                          <div className="flex items-center space-x-2">
+                            {room.isPrivate ? (
+                              <Lock className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <Hash className="h-4 w-4 text-gray-400" />
+                            )}
+                            <span className="text-sm">{room.name}</span>
+                          </div>
+                          {!isUserInRoom(room) && (
+                            <Badge variant="outline" className="text-xs">
+                              Entrar
+                            </Badge>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </>
+                )}
 
-            {/* User Results */}
-            {searchResults.users.length > 0 && (
-              <div>
-                <h4 className="text-xs font-medium text-gray-400 mb-2 flex items-center">
-                  <Users className="h-3 w-3 mr-1" />
-                  Usuários
-                </h4>
-                {searchResults.users.map((user) => (
-                  <div
-                    key={user.uid}
-                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                    onClick={() => onUserSelect(user)}
-                  >
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={user.photoURL} />
-                      <AvatarFallback className="text-xs">
-                        {getInitials(user.displayName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">{user.displayName}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+                {/* User Results */}
+                {searchResults.users.length > 0 && (
+                  <>
+                    <div className="text-xs font-medium text-gray-400 mb-2 flex items-center px-2 mt-4">
+                      <Users className="h-3 w-3 mr-1" />
+                      Usuários
+                    </div>
+                    {searchResults.users.map((user) => (
+                      <SidebarMenuItem key={user.uid}>
+                        <SidebarMenuButton
+                          onClick={() => onUserSelect(user)}
+                          className="w-full"
+                        >
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={user.photoURL} />
+                            <AvatarFallback className="text-xs">
+                              {getInitials(user.displayName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{user.displayName}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </>
+                )}
 
-            {!isSearching && searchResults.rooms.length === 0 && searchResults.users.length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Nenhum resultado encontrado
-              </p>
-            )}
-          </div>
+                {!isSearching && searchResults.rooms.length === 0 && searchResults.users.length === 0 && (
+                  <div className="px-2 py-4">
+                    <p className="text-sm text-gray-500">
+                      Nenhum resultado encontrado
+                    </p>
+                  </div>
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         )}
 
         {/* Room List */}
         {!searchTerm && (
-          <div className="p-4">
-            {/* Global Chat */}
-            <div
-              className={cn(
-                'flex items-center space-x-2 p-2 rounded-lg cursor-pointer mb-2',
-                !currentRoom
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-              )}
-              onClick={() => onRoomSelect(null)}
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span className="text-sm font-medium">Chat Global</span>
-            </div>
+          <>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {/* Global Chat */}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => onRoomSelect(null)}
+                      isActive={!currentRoom}
+                      className="w-full"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span className="font-medium">Chat Global</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
 
-            <Separator className="my-3" />
-
-            {/* My Rooms */}
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              Minhas Salas
-            </h3>
-            {rooms.map((room) => (
-              <div
-                key={room.id}
-                className={cn(
-                  'flex items-center space-x-2 p-2 rounded-lg cursor-pointer',
-                  currentRoom?.id === room.id
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                )}
-                onClick={() => onRoomSelect(room)}
-              >
-                <Hash className="h-4 w-4" />
-                <span className="text-sm">{room.name}</span>
-                <Badge variant="secondary" className="ml-auto text-xs">
-                  {room.members.length}
-                </Badge>
-              </div>
-            ))}
-          </div>
+            <SidebarGroup>
+              <SidebarGroupLabel>Minhas Salas</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {rooms.map((room) => (
+                    <SidebarMenuItem key={room.id}>
+                      <SidebarMenuButton
+                        onClick={() => onRoomSelect(room)}
+                        isActive={currentRoom?.id === room.id}
+                        className="w-full justify-between"
+                      >
+                        <div className="flex items-center space-x-2">
+                          {room.isPrivate ? (
+                            <Lock className="h-4 w-4" />
+                          ) : (
+                            <Hash className="h-4 w-4" />
+                          )}
+                          <span className="text-sm">{room.name}</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {room.members.length}
+                        </Badge>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
         )}
-      </ScrollArea>
-    </div>
+      </SidebarContent>
+    </Sidebar>
   );
 };

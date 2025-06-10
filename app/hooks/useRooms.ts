@@ -58,6 +58,7 @@ export const useRooms = () => {
             createdAt: data.createdAt?.toDate() || new Date(),
             members: data.members || [],
             isPrivate: data.isPrivate || false,
+            password: data.password,
           });
         });
 
@@ -85,22 +86,33 @@ export const useRooms = () => {
   const createRoom = useCallback(async (
     name: string,
     description?: string,
-    isPrivate: boolean = false
+    isPrivate: boolean = false,
+    password?: string
   ): Promise<string> => {
     if (!user || !name.trim()) {
       throw new Error('Usuário não autenticado ou nome inválido');
     }
 
+    if (isPrivate && !password?.trim()) {
+      throw new Error('Senha é obrigatória para salas privadas');
+    }
+
     try {
       const roomsRef = collection(db, 'rooms');
-      const docRef = await addDoc(roomsRef, {
+      const roomData: any = {
         name: name.trim(),
         description: description?.trim() || '',
         createdBy: user.uid,
         createdAt: serverTimestamp(),
         members: [user.uid],
         isPrivate,
-      });
+      };
+
+      if (isPrivate && password) {
+        roomData.password = password;
+      }
+
+      const docRef = await addDoc(roomsRef, roomData);
 
       return docRef.id;
     } catch (error) {
@@ -182,6 +194,7 @@ export const useRooms = () => {
           createdAt: data.createdAt?.toDate() || new Date(),
           members: data.members || [],
           isPrivate: data.isPrivate || false,
+          password: data.password,
         });
       });
 

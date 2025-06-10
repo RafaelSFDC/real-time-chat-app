@@ -11,6 +11,10 @@ import {
   deleteDoc,
   where,
   getDocs,
+  updateDoc,
+  increment,
+  arrayUnion,
+  arrayRemove,
 } from 'firebase/firestore';
 import { db } from '~/lib/firebase';
 import { useAuth } from '~/contexts/AuthContext';
@@ -64,6 +68,9 @@ export const useChat = (currentRoom?: Room | null) => {
             createdAt: data.createdAt?.toDate() || new Date(),
             roomId: data.roomId || null,
             mentions: data.mentions || [],
+            reactions: data.reactions || {},
+            isEdited: data.isEdited || false,
+            updatedAt: data.updatedAt?.toDate(),
           };
 
           // Filter messages based on current room
@@ -145,6 +152,81 @@ export const useChat = (currentRoom?: Room | null) => {
     }
   }, [user]);
 
+  const editMessage = useCallback(async (messageId: string, newText: string): Promise<void> => {
+    if (!user || !newText.trim()) return;
+
+    try {
+      const messageRef = doc(db, 'messages', messageId);
+      await updateDoc(messageRef, {
+        text: newText.trim(),
+        isEdited: true,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: 'Erro ao editar mensagem',
+      }));
+      console.error('Error editing message:', error);
+      throw error;
+    }
+  }, [user]);
+
+  const deleteMessage = useCallback(async (messageId: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      const messageRef = doc(db, 'messages', messageId);
+      await deleteDoc(messageRef);
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: 'Erro ao excluir mensagem',
+      }));
+      console.error('Error deleting message:', error);
+      throw error;
+    }
+  }, [user]);
+
+  const addReaction = useCallback(async (messageId: string, emoji: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      const messageRef = doc(db, 'messages', messageId);
+      await updateDoc(messageRef, {
+        [`reactions.${emoji}.users`]: arrayUnion(user.uid),
+        [`reactions.${emoji}.count`]: increment(1),
+        [`reactions.${emoji}.emoji`]: emoji,
+      });
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: 'Erro ao adicionar reação',
+      }));
+      console.error('Error adding reaction:', error);
+      throw error;
+    }
+  }, [user]);
+
+  const removeReaction = useCallback(async (messageId: string, emoji: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      const messageRef = doc(db, 'messages', messageId);
+      await updateDoc(messageRef, {
+        [`reactions.${emoji}.users`]: arrayRemove(user.uid),
+        [`reactions.${emoji}.count`]: increment(-1),
+      });
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: 'Erro ao remover reação',
+      }));
+      console.error('Error removing reaction:', error);
+      throw error;
+    }
+  }, [user]);
+
   const clearError = useCallback((): void => {
     setState(prev => ({ ...prev, error: null }));
   }, []);
@@ -152,6 +234,10 @@ export const useChat = (currentRoom?: Room | null) => {
   return {
     ...state,
     sendMessage,
+    editMessage,
+    deleteMessage,
+    addReaction,
+    removeReaction,
     setTyping,
     clearError,
   };
