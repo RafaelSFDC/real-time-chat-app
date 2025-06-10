@@ -34,18 +34,18 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // Messages are readable by authenticated users
     // Only the message author can write/update their messages
     match /messages/{messageId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null 
+      allow create: if request.auth != null
         && request.auth.uid == resource.data.userId
         && request.auth.email == resource.data.userEmail;
-      allow update, delete: if request.auth != null 
+      allow update, delete: if request.auth != null
         && request.auth.uid == resource.data.userId;
     }
-    
+
     // Typing indicators
     match /typing/{userId} {
       allow read: if request.auth != null;
@@ -95,33 +95,30 @@ export const db = getFirestore(app);
 export default app;
 ```
 
-## 7. Variáveis de Ambiente (Opcional - Recomendado)
+## 7. Configurar Variáveis de Ambiente (Obrigatório)
 
-Para maior segurança, você pode usar variáveis de ambiente:
+O projeto agora usa variáveis de ambiente para maior segurança:
 
-1. Crie um arquivo `.env.local` na raiz do projeto:
+1. Copie o arquivo de exemplo:
+```bash
+cp .env.example .env.local
+```
+
+2. Edite o arquivo `.env.local` com suas credenciais reais do Firebase:
 
 ```env
-VITE_FIREBASE_API_KEY=sua_api_key_aqui
+VITE_FIREBASE_API_KEY=sua_api_key_real_aqui
 VITE_FIREBASE_AUTH_DOMAIN=seu-projeto.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=seu-projeto-id
 VITE_FIREBASE_STORAGE_BUCKET=seu-projeto.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=sua_app_id_aqui
+VITE_FIREBASE_APP_ID=sua_app_id_real_aqui
 ```
 
-2. Atualize o `firebase.ts`:
-
-```typescript
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
-```
+> ⚠️ **Importante**:
+> - Substitua TODOS os valores pelos dados reais do seu projeto Firebase
+> - O arquivo `.env.local` já está configurado no `.gitignore` e não será commitado
+> - O arquivo `firebase.ts` já está configurado para usar essas variáveis automaticamente
 
 ## 8. Testar a Aplicação
 

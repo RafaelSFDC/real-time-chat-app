@@ -1,9 +1,10 @@
-import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
 import type { ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  // Detecta o tema baseado na classe dark no documento
+  const isDark = typeof window !== 'undefined' && document.documentElement.classList.contains('dark')
+  const theme = isDark ? 'dark' : 'light'
 
   return (
     <Sonner

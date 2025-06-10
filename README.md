@@ -59,20 +59,24 @@ Siga as instruções detalhadas no arquivo [FIREBASE_SETUP.md](./FIREBASE_SETUP.
 - Configurar Firestore Database
 - Obter credenciais de configuração
 
-### 3. Configure as credenciais
+### 3. Configure as variáveis de ambiente
 
-Edite o arquivo `app/lib/firebase.ts` com suas credenciais do Firebase:
-
-```typescript
-const firebaseConfig = {
-  apiKey: "sua-api-key",
-  authDomain: "seu-projeto.firebaseapp.com",
-  projectId: "seu-projeto-id",
-  storageBucket: "seu-projeto.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "sua-app-id"
-};
+1. Copie o arquivo de exemplo:
+```bash
+cp .env.example .env.local
 ```
+
+2. Edite o arquivo `.env.local` com suas credenciais do Firebase:
+```env
+VITE_FIREBASE_API_KEY=sua_api_key_aqui
+VITE_FIREBASE_AUTH_DOMAIN=seu-projeto.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=seu-projeto-id
+VITE_FIREBASE_STORAGE_BUCKET=seu-projeto.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=sua_app_id_aqui
+```
+
+> ⚠️ **Importante**: Nunca commite o arquivo `.env.local` no Git. Ele já está incluído no `.gitignore`.
 
 ### 4. Execute a aplicação
 
